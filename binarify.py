@@ -1,38 +1,43 @@
 import binascii
 import argparse
-
-CHUNK_SIZE = 1
-
-
-def get_binary_of_file(source_file_path: str, output_file_name):
-    source_file_path = source_file_path.replace("\\", "/")
-    output_path = "/".join(source_file_path.split(
-        "/")[:len(source_file_path.split("/")) - 1]) + "/" + output_file_name
-    fin = open(source_file_path, "rb")
-    with open(output_path, "w") as fout:
-        data = fin.read(CHUNK_SIZE)
-        while data != b'':
-            binary_string = bin(int(binascii.hexlify(data), 16))[2:].zfill(8)
-            fout.write(binary_string)
-
-            data = fin.read(CHUNK_SIZE)
-    print("Binary representation of the file is saved in", output_path)
-    fin.close()
+import os
 
 
-def compile_to_actual_binary(source_file_path: str, output_file_name):
-    source_file_path = source_file_path.replace("\\", "/")
-    output_path = "/".join(source_file_path.split(
-        "/")[:len(source_file_path.split("/")) - 1]) + "/" + output_file_name
-    fin = open(source_file_path, "r")
-    with open(output_path, "wb") as fout:
-        data = fin.read(CHUNK_SIZE * 8)
-        while data != '':
-            n = int(data, 2)
-            fout.write(n.to_bytes(CHUNK_SIZE, 'big'))
-            data = fin.read(CHUNK_SIZE * 8)
-    fin.close()
-    print("File is compiled to actual binary representation and saved in", output_path)
+def get_output_path(source_file_path: str, output_file_name: str) -> str:
+    directory = os.path.dirname(source_file_path)
+    return os.path.join(directory, output_file_name)
+
+
+def read_in_chunks(file_object, chunk_size):
+    while True:
+        data = file_object.read(chunk_size)
+        if not data:
+            break
+        yield data
+
+
+def process_to_binary(data: bytes) -> str:
+    return bin(int(binascii.hexlify(data), 16))[2:].zfill(8 * len(data))
+
+
+def process_to_byte(data: str) -> bytes:
+    return int(data, 2).to_bytes(len(data) // 8, 'big')
+
+
+def convert_file_to_binary(source_file_path: str, output_file_name: str):
+    output_path = get_output_path(source_file_path, output_file_name)
+    with open(source_file_path, "rb") as fin, open(output_path, "w") as fout:
+        for data in read_in_chunks(fin, 1):
+            fout.write(process_to_binary(data))
+    print(f"Binary representation of the file is saved in {output_path}")
+
+
+def compile_to_file(source_file_path: str, output_file_name: str):
+    output_path = get_output_path(source_file_path, output_file_name)
+    with open(source_file_path, "r") as fin, open(output_path, "wb") as fout:
+        for data in read_in_chunks(fin, 8):
+            fout.write(process_to_byte(data))
+    print(f"File is compiled to actual binary representation and saved in {output_path}")
 
 
 def main():
@@ -48,9 +53,9 @@ def main():
                         )
     args = parser.parse_args()
     if args.compile:
-        compile_to_actual_binary(args.compile[0], args.compile[1])
+        compile_to_file(*args.compile)
     elif args.binarify:
-        get_binary_of_file(args.binarify[0], args.binarify[1])
+        convert_file_to_binary(*args.binarify)
 
 
 if __name__ == "__main__":
