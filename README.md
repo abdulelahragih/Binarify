@@ -12,7 +12,7 @@ The script can be run from the command line with the following syntax:
 ```bash
 python binarify.py {-c, -b} source_file output_file
 ```
--  Use `-c` to compile a file to its actual binary representation, and `-b` to get the binary representation of a file.
+-  Use `-c` to compile a file to its actual binary format, and `-b` to get the binary representation of a file in text format.
 - `source_file` is the path to the source file you want to convert.
 - `output_file` is the name of the output file where the result will be saved.
 
@@ -29,7 +29,7 @@ python binarify.py -c path/to/file/binary.txt image.jpg
 ```
 
 ## TODO
-- [ ] allow output file to accept file name or path. For now it only accept file name and it is stored in the same path of the source file
+- [ ] allow output file to accept file name or path. For now, it only accepts a file name and it is stored in the same path as the source file
 ## License
 
 This project is licensed under the terms of the MIT license.
