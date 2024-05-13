@@ -1,6 +1,7 @@
-import binascii
 import argparse
 import os
+
+CHUNK_SIZE = 1024 * 1024 * 10  # 10 MB
 
 
 def get_output_path(source_file_path: str, output_file_name: str) -> str:
@@ -17,17 +18,17 @@ def read_in_chunks(file_object, chunk_size):
 
 
 def process_to_binary(data: bytes) -> str:
-    return bin(int(binascii.hexlify(data), 16))[2:].zfill(8 * len(data))
+    return ''.join([bin(byte)[2:].zfill(8) for byte in data])
 
 
 def process_to_byte(data: str) -> bytes:
-    return int(data, 2).to_bytes(len(data) // 8, 'big')
+    return bytes(int(data[i:i + 8], 2) for i in range(0, len(data), 8))
 
 
 def convert_file_to_binary(source_file_path: str, output_file_name: str):
     output_path = get_output_path(source_file_path, output_file_name)
     with open(source_file_path, "rb") as fin, open(output_path, "w") as fout:
-        for data in read_in_chunks(fin, 1):
+        for data in read_in_chunks(fin, CHUNK_SIZE):
             fout.write(process_to_binary(data))
     print(f"Binary representation of the file is saved in {output_path}")
 
@@ -35,7 +36,7 @@ def convert_file_to_binary(source_file_path: str, output_file_name: str):
 def compile_to_file(source_file_path: str, output_file_name: str):
     output_path = get_output_path(source_file_path, output_file_name)
     with open(source_file_path, "r") as fin, open(output_path, "wb") as fout:
-        for data in read_in_chunks(fin, 8):
+        for data in read_in_chunks(fin, CHUNK_SIZE):
             fout.write(process_to_byte(data))
     print(f"File is compiled to actual binary representation and saved in {output_path}")
 
